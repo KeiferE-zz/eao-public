@@ -33,9 +33,11 @@ export class CommentPeriodComponent implements OnInit {
 
   ngOnInit() {
     const id = this.route.snapshot.params.id;
+    // alert(id);
     const code = this.route.snapshot.params.code;
     this.loading = true;
     this.hostname = this.api.hostnameEPIC;
+    alert(id);
     // get comment period and project meta data
     this.commentPeriodService.getByCode(id, code).mergeMap(
         (commentPeriod: CommentPeriod ) => {

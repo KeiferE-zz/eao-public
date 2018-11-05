@@ -78,6 +78,8 @@ export class CommentPeriodService {
   // return a public comment period object
   getByCode(id: string, code: string): Observable<CommentPeriod> {
   // Grab the project data first
+    // alert(id);
+    // alert(code);
     return this.api.getPCPByCode(id)
       .map((res: Response) => res.json())
       .map((pcp: any) => {
@@ -85,6 +87,8 @@ export class CommentPeriodService {
           throw new Error('PCP not found');
         }
         this.pcp = new CommentPeriod(pcp);
+        // alert(res);
+        // alert('in the middle of this');
         this.pcp.relatedDocuments.forEach((document, index ) => {
           document = new Document(document);
           this.processDocuments(this.pcp.relatedDocuments, document, index);
@@ -95,6 +99,10 @@ export class CommentPeriodService {
       // get what project the public comment period is associated with
       .switchMap(() => this.getProjectByCode(code))
       .map(() => this.pcp);
+  }
+
+  test() {
+    alert('kfdlskfdsklfsjflksjdflk');
   }
 
   // attach comments and documents to pcp object
@@ -153,9 +161,11 @@ export class CommentPeriodService {
   // get project associated to public comment period and map to project attribute
   // return project json object
   private getProjectByCode(code) {
+    // alert(code);
     return this.api.getProjectByCode(code)
       .map((res: Response) => {
         this.pcp.project = new Project(res.json());
+        // alert('works in comments');
         return this.pcp;
       });
   }

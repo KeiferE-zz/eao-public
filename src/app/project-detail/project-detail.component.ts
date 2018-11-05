@@ -11,6 +11,8 @@ import { NewsTypeFilterPipe } from '../pipes/news-type-filter.pipe';
 import { Api } from '../services/api';
 import { NewsService } from '../services/news.service';
 import { ProjectService } from '../services/project.service';
+import { CommentPeriodService } from '../services/comment-period.service';
+import { CommentPeriod } from '../models/commentperiod';
 
 @Component({
   selector: 'app-project-detail',
@@ -20,6 +22,7 @@ import { ProjectService } from '../services/project.service';
 export class ProjectDetailComponent implements OnInit {
   project: Project;
   news: News[];
+  commentPeriod: CommentPeriod;
   public loading: boolean;
   public isDesc: boolean;
   public column: string;
@@ -46,7 +49,8 @@ export class ProjectDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private projectService: ProjectService,
-    private newsService: NewsService
+    private newsService: NewsService,
+    private commentPeriodService: CommentPeriodService
   ) {
     this.NewsTypeFilterPipe = new NewsTypeFilterPipe();
     this.NewsHeadlineFilterPipe = new NewsHeadlineFilterPipe();
@@ -57,9 +61,13 @@ export class ProjectDetailComponent implements OnInit {
     const projectCode = this.route.snapshot.params.code;
     this.loading = true;
 
+    // const id = this.route.snapshot.params.id;
+    // alert(id);
+    // this.commentPeriodService.test();
     // get project data
     this.projectService
       .getByCode(projectCode)
+      // .getByCodePcp(projectCode)
       .mergeMap((project: Project) => {
         this.project = new Project(project);
         if (!this.project.proponent) {
@@ -68,29 +76,86 @@ export class ProjectDetailComponent implements OnInit {
         this.column = 'dateAdded';
         this.direction = -1;
         // get news for the project
+        // alert(Object.keys(this.project));
+        // alert(this.project.openCommentPeriod);
+        // alert(Object.keys(this.newsService.getByProjectCode(projectCode)));
         return this.newsService.getByProjectCode(projectCode);
       })
       .subscribe(data => {
         this.news = data;
         this.setDocumentUrl(this.news);
+        // alert('hey');
         this.filteredResults = this.news.length;
         this.loading = false;
       });
+
+
   }
 
   setDocumentUrl(news) {
     const regex = /http(s)?:\/\/(www.)?/;
+    const code = this.route.snapshot.params.code;
+    alert(code);
     news.forEach(activity => {
       if (!activity.documentUrl) {
         activity.documentUrl = '';
+         alert(Object.keys(activity));
+         alert(activity.headline);
+         //const s = this.router.parseUrl(activity.contentUrl).root.children['primary'].segments;
+         //const s = this.router.parseUrl(activity.contentUrl).root.children['primary'].segments;
+         const c = activity.contentUrl.split('/');
+         alert(c[4]);
+         //alert(s[0].params.code);
+         //alert(activity.id);
+        // this.pcpPopup(activity.id);
+        //this.commentPeriodService.test();
+        //this.projectService.getByCode(code);
+        this.projectService
+      .getByCode(code)
+      // .getByCodePcp(projectCode)
+      .mergeMap((project: Project) => {
+        alert("INDSF");
+        return null;
+        //this.project = new Project(project);
+        //if (!this.project.proponent) {
+         // this.project.proponent = new Proponent({ name: '' });
+        //}
+       // this.column = 'dateAdded';
+       // this.direction = -1;
+        // get news for the project
+        // alert(Object.keys(this.project));
+        // alert(this.project.openCommentPeriod);
+        // alert(Object.keys(this.newsService.getByProjectCode(projectCode)));
+        //return this.newsService.getByProjectCode(projectCode);
+      })
+        /*this.commentPeriodService.getByCode(c[4], code).mergeMap(
+          (commentPeriod: CommentPeriod) => {
+            alert("dfgdfjkgndfgjkdfjg");
+            this.commentPeriod = commentPeriod;
+            alert(this.commentPeriod);
+            return this.commentPeriodService.getCommentsAndDocuments(this.commentPeriod);
+          }
+        );*/
       } else if (!regex.test(activity.documentUrl)) {
+        // alert(Object.keys(activity));
+         //alert(activity.id)
+         //alert(activity.documentUrl);
         activity.documentUrl = `${this.api.hostnameEPIC}${activity.documentUrl}`;
+        //alert(activity.documentUrl);
       }
     });
   }
 
   public getDocumentManagerUrl() {
     return `${this.api.hostnameEPIC}/p/${this.project.code}/docs`;
+  }
+
+  pcpPopup(id) {
+    const projectCode = this.route.snapshot.params.code;
+    // alert(this.getDocumentManagerUrl());
+    // this.projectService.getByCodePcp(id, projectCode);
+    // alert('this happens');
+
   }
 
   sort(property) {
