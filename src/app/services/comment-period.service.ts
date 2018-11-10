@@ -4,11 +4,13 @@ import { CommentPeriod } from '../models/commentperiod';
 import { Comment } from '../models/comment';
 import { Document } from '../models/document';
 import { Project } from '../models/project';
+import { News } from '../models/news';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/observable/throw';
 import 'rxjs/add/observable/forkJoin';
+import 'rxjs/add/observable/of';
 
 import { Api } from './api';
 import { ValuedComponent } from '../models/vcs';
@@ -17,6 +19,7 @@ import { ValuedComponent } from '../models/vcs';
 export class CommentPeriodService {
   pcp: CommentPeriod;
   comment: Object;
+  news: News[];
 
   constructor(private api: Api) { }
 
@@ -25,6 +28,7 @@ export class CommentPeriodService {
     this.comment = comment;
 
     // if no documents
+    alert(projectId);
     if (documents.length === 0) {
       return this.submitCommentNoDocument(projectId, options);
     // if document
@@ -75,6 +79,40 @@ export class CommentPeriodService {
     return Observable.forkJoin(observablesArray);
   }
 
+  getPCPByArray(news: News[], code: string): Observable<Array<any>> {
+    alert('inside by array');
+    const allPCP = [];
+    news.forEach(item => {
+      if (item.contentUrl) {
+        const contentID = item.contentUrl.split('/');
+        //this.getPCPSimple(contentID[4], code).map(() => this.pcp);
+        //alert(this.pcp);
+        alert(Object.keys(this.getByCode(contentID[4], code)));
+
+          //data.comments = this.filterRejectedDocuments(data.comments);
+          // this.loading = false;
+        allPCP.push(this.getByCode(contentID[4], code));
+        // allPCP.push(this.getByCode(contentID[4], code));
+      }
+    });
+    return Observable.of(allPCP);
+  }
+
+  getPCPSimple(id: string, code: string): Observable<CommentPeriod> {
+    return this.api.getPCPByCode(id)
+      .map((res: Response) => res.json())
+      .map((pcp: any) => {
+        if (!pcp) {
+          throw new Error('PCP not found');
+        }
+        this.pcp = new CommentPeriod(pcp);
+        alert('inside');
+        this.setStatus(new Date(this.pcp.dateStarted), new Date(this.pcp.dateCompleted));
+        return this.pcp;
+      });
+    // return null;
+  }
+
   // return a public comment period object
   getByCode(id: string, code: string): Observable<CommentPeriod> {
   // Grab the project data first
@@ -85,6 +123,7 @@ export class CommentPeriodService {
           throw new Error('PCP not found');
         }
         this.pcp = new CommentPeriod(pcp);
+        // alert(this.pcp.dateStarted);
         this.pcp.relatedDocuments.forEach((document, index ) => {
           document = new Document(document);
           this.processDocuments(this.pcp.relatedDocuments, document, index);
@@ -95,6 +134,14 @@ export class CommentPeriodService {
       // get what project the public comment period is associated with
       .switchMap(() => this.getProjectByCode(code))
       .map(() => this.pcp);
+  }
+
+  getByProjectCode(projectCode): Observable<any> {
+    alert('in f');
+    alert(projectCode);
+    //vreturn this.api.get(`recentactivity/getPublishedCommentPeriodsForProject/${projectCode}`)
+     // .map((res: Response) => res.json());
+     return Observable.of(this.api.get(`recentactivity/getPublishedCommentPeriodsForProject/${projectCode}`));
   }
 
   // attach comments and documents to pcp object

@@ -49,7 +49,7 @@ export class NewsService {
     });
   }
 
-  getByProjectCode(projectCode): Observable<News[]> {
+  getByProjectCode(projectCode): Observable<any> {
     return this.api.get(`recentactivity/byproject/${projectCode}`)
       .map((res: Response) => res.json());
   }

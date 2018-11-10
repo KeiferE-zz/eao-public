@@ -5,12 +5,14 @@ import { Subscription } from 'rxjs/Subscription';
 import 'rxjs/add/operator/mergeMap';
 import { News } from '../models/news';
 import { Project } from '../models/project';
+import { CommentPeriod } from '../models/commentperiod';
 import { Proponent } from '../models/proponent';
 import { NewsHeadlineFilterPipe } from '../pipes/news-headline-filter.pipe';
 import { NewsTypeFilterPipe } from '../pipes/news-type-filter.pipe';
 import { Api } from '../services/api';
 import { NewsService } from '../services/news.service';
 import { ProjectService } from '../services/project.service';
+import { CommentPeriodService } from '../services/comment-period.service';
 
 @Component({
   selector: 'app-project-detail',
@@ -20,6 +22,8 @@ import { ProjectService } from '../services/project.service';
 export class ProjectDetailComponent implements OnInit {
   project: Project;
   news: News[];
+  pcps: CommentPeriod[];
+  commentPeriod: CommentPeriod;
   public loading: boolean;
   public isDesc: boolean;
   public column: string;
@@ -46,7 +50,8 @@ export class ProjectDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private projectService: ProjectService,
-    private newsService: NewsService
+    private newsService: NewsService,
+    private commentPeriodService: CommentPeriodService
   ) {
     this.NewsTypeFilterPipe = new NewsTypeFilterPipe();
     this.NewsHeadlineFilterPipe = new NewsHeadlineFilterPipe();
@@ -55,6 +60,9 @@ export class ProjectDetailComponent implements OnInit {
   ngOnInit() {
     this.loading = true;
     const projectCode = this.route.snapshot.params.code;
+    const projectID = Object.keys(this.route.snapshot.params);
+    alert(projectCode);
+    alert(projectID);
     this.loading = true;
 
     // get project data
@@ -62,6 +70,8 @@ export class ProjectDetailComponent implements OnInit {
       .getByCode(projectCode)
       .mergeMap((project: Project) => {
         this.project = new Project(project);
+       alert(Object.keys(this.project));
+       alert(this.project._id);
         if (!this.project.proponent) {
           this.project.proponent = new Proponent({ name: '' });
         }
@@ -71,16 +81,107 @@ export class ProjectDetailComponent implements OnInit {
         return this.newsService.getByProjectCode(projectCode);
       })
       .subscribe(data => {
+        alert('any');
         this.news = data;
         this.setDocumentUrl(this.news);
         this.filteredResults = this.news.length;
         this.loading = false;
+        // alert('in');
       });
+      alert('before');
+
+      this.projectService
+      .getByCode(projectCode)
+      .mergeMap((project: Project) => {
+        this.project = new Project(project);
+        // get news for the project
+        alert('in');
+        alert(this.project._id);
+        return this.commentPeriodService.getByProjectCode(this.project._id);
+      })
+      .subscribe(data => {
+        alert(' in in');
+        data
+        .map((res: Response) => res.json())
+        .map((pcps: any) => {
+          alert('ppp');
+          alert(pcps);
+        });
+        // this.pcps = data;
+        // this.pcps.forEach(item => {
+        //  alert(item);
+        // });
+        //this.setDocumentUrl(this.news);
+        //cthis.filteredResults = this.news.length;
+        //c this.loading = false;
+        // alert('in');
+      });
+
+
+    // get pcpBanner data
+    /*this.newsService.getByProjectCode(projectCode)
+      .mergeMap((news: News[]) => {
+        const allPCP = [];
+        //const projectCode = this.route.snapshot.params.code;
+        news.forEach(item => {
+          if (item.contentUrl) {
+            const contentID = item.contentUrl.split('/');
+            //this.getPCPSimple(contentID[4], code).map(() => this.pcp);
+            //alert(this.pcp);
+            //alert(Object.keys(this.commentPeriodService.getByCode(contentID[4], code)));
+
+              //data.comments = this.filterRejectedDocuments(data.comments);
+              // this.loading = false;
+            //allPCP.push(this.commentPeriodService.getByCode(contentID[4], projectCode));
+            const contentIDOrdinal = 4;
+            this.commentPeriodService.getByCode(contentID[contentIDOrdinal], projectCode).mergeMap(
+              (commentPeriod: CommentPeriod ) => {
+                this.commentPeriod = commentPeriod;
+                this.column = 'dateAdded';
+                this.direction = -1;
+                alert('insidaaa');
+                // get comments and documents for comment period
+                return this.commentPeriodService.getCommentsAndDocuments(this.commentPeriod);
+              }
+            ).subscribe(data => {
+               alert(data.dateStarted);
+            });
+            alert('push');
+            // allPCP.push(this.getByCode(contentID[4], code));
+          }
+        });
+        allPCP.push(2);
+        allPCP.push(3);
+        return allPCP;
+        // return this.commentPeriodService.getByCode(id, projectCode);
+      })
+      .subscribe(data => {
+        // currently gets an array back
+        // const pcps = [];
+        // alert(Object.keys(data[0]));
+        // this.commentPeriodService.get
+        // data.map((x: number) => alert(x));
+        alert(data);
+
+
+
+        alert('inside subscribe of top level');
+      });*/
+  }
+
+  setBanner(pcp) {
+    // pcps.forEach(item => {
+      alert(pcp.dateStarted);
+      if (pcp.status === 'Pending' || pcp.status === 'Open') {
+        alert('there should be a banner');
+      }
+    // });
   }
 
   setDocumentUrl(news) {
     const regex = /http(s)?:\/\/(www.)?/;
     news.forEach(activity => {
+      alert(activity.headline);
       if (!activity.documentUrl) {
         activity.documentUrl = '';
       } else if (!regex.test(activity.documentUrl)) {
@@ -135,4 +236,17 @@ export class ProjectDetailComponent implements OnInit {
     this.filteredResults = items.length;
     return message;
   }
+
+  /*setStatus(start, end) {
+    const curr = new Date();
+    const weekAgo = new Date(start.getDate() - 7);
+    // a public comment period is in a pending state when the date is a week before it opens
+    if ( curr < start && curr >= weekAgo ) {
+      this.pcp.status = 'Pending';
+    } else if ( curr > end ) {
+      this.pcp.status = 'Closed';
+    } else {
+      this.pcp.status = 'Open';
+    }
+  }*/
 }
