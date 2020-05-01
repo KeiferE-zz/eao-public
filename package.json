@@ -11,7 +11,9 @@
     "pretest": "npm run lint",
     "test": "ng test -cc -sm=false",
     "e2e": "node e2e.ts",
-    "postinstall": "ng build --prod"
+    "postinstall": "ng build --prod",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "private": true,
   "dependencies": {
@@ -27,12 +29,12 @@
     "@angular/platform-browser-dynamic": "4.4.7",
     "@angular/router": "4.4.7",
     "@ng-bootstrap/ng-bootstrap": "1.0.0-alpha.31",
-    "bootstrap": "^4.1.2",
+    "bootstrap": "^4.0.0",
     "core-js": "2.5.6",
     "esri-loader": "2.2.0",
     "filesize": "3.6.1",
     "font-awesome": "^4.7.0",
-    "jquery": "3.3.1",
+    "jquery": "3.5.0",
     "lodash": "4.17.10",
     "mygovbc-bootstrap-theme": "0.4.1",
     "ngx-filesize": "1.1.2",
@@ -43,7 +45,8 @@
     "rxjs": "5.5.10",
     "tether": "1.4.4",
     "typescript": "2.3.4",
-    "zone.js": "0.8.26"
+    "zone.js": "0.8.26",
+    "snyk": "^1.316.1"
   },
   "devDependencies": {
     "@angular/cli": "^1.5.6",
@@ -66,5 +69,6 @@
     "karma-spec-reporter": "0.0.32",
     "ts-node": "2.0.0",
     "tslint": "4.5.1"
-  }
+  },
+  "snyk": true
 }
